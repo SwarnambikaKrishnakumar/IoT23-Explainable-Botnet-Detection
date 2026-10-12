@@ -23,7 +23,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATA_DIR = os.path.join(BASE_DIR, "processed_data")
 
-
 X_TRAIN_PATH = os.path.join(DATA_DIR, "X_train.csv")
 X_TEST_PATH = os.path.join(DATA_DIR, "X_test.csv")
 Y_TRAIN_PATH = os.path.join(DATA_DIR, "y_train.csv")
@@ -41,7 +40,10 @@ y_train = pd.read_csv(Y_TRAIN_PATH).iloc[:, 0]
 y_test = pd.read_csv(Y_TEST_PATH).iloc[:, 0]
 
 
-# Convert labels safely
+# ============================================================
+# CONVERT LABELS
+# ============================================================
+
 def convert_label(value):
     value = str(value).strip().lower()
 
@@ -55,7 +57,10 @@ y_train = y_train.apply(convert_label).astype(int)
 y_test = y_test.apply(convert_label).astype(int)
 
 
-# Make sure test columns match training columns
+# ============================================================
+# MAKE SURE TEST COLUMNS MATCH TRAINING COLUMNS
+# ============================================================
+
 X_test = X_test[X_train.columns]
 
 
@@ -88,7 +93,10 @@ lof = LocalOutlierFactor(
 lof.fit(X_benign_train)
 
 
-# Predictions
+# ============================================================
+# PREDICTIONS
+# ============================================================
+
 y_pred = lof.predict(X_test_scaled)
 
 # LOF gives:
@@ -98,7 +106,10 @@ y_pred = lof.predict(X_test_scaled)
 y_pred_binary = np.where(y_pred == -1, 1, 0)
 
 
-# Decision score
+# ============================================================
+# DECISION SCORE
+# ============================================================
+
 decision_scores = lof.decision_function(X_test_scaled)
 
 
@@ -162,7 +173,11 @@ def get_status(actual, predicted):
 @app.route("/")
 def home():
 
-    selected_sample = request.args.get("sample", default=0, type=int)
+    selected_sample = request.args.get(
+        "sample",
+        default=0,
+        type=int
+    )
 
     if selected_sample < 0 or selected_sample >= len(X_test):
         selected_sample = 0
@@ -193,7 +208,10 @@ def home():
         actual_label="Malicious" if actual == 1 else "Benign",
         predicted_label="Malicious" if predicted == 1 else "Benign",
         status=status,
-        decision_score=round(float(decision_scores[selected_sample]), 6)
+        decision_score=round(
+            float(decision_scores[selected_sample]),
+            6
+        )
     )
 
 
@@ -204,7 +222,10 @@ def home():
 @app.route("/sample", methods=["POST"])
 def select_sample():
 
-    sample_number = request.form.get("sample_number", type=int)
+    sample_number = request.form.get(
+        "sample_number",
+        type=int
+    )
 
     if sample_number is None:
         sample_number = 0
@@ -213,7 +234,10 @@ def select_sample():
         sample_number = 0
 
     return redirect(
-        url_for("home", sample=sample_number)
+        url_for(
+            "home",
+            sample=sample_number
+        )
     )
 
 
@@ -224,7 +248,10 @@ def select_sample():
 @app.route("/detect", methods=["POST"])
 def detect():
 
-    sample_number = request.form.get("sample_number", type=int)
+    sample_number = request.form.get(
+        "sample_number",
+        type=int
+    )
 
     if sample_number is None:
         sample_number = 0
@@ -233,7 +260,10 @@ def detect():
         sample_number = 0
 
     return redirect(
-        url_for("home", sample=sample_number)
+        url_for(
+            "home",
+            sample=sample_number
+        )
     )
 
 
@@ -244,7 +274,10 @@ def detect():
 @app.route("/explain", methods=["POST"])
 def explain():
 
-    sample_number = request.form.get("sample_number", type=int)
+    sample_number = request.form.get(
+        "sample_number",
+        type=int
+    )
 
     if sample_number is None:
         sample_number = 0
@@ -266,8 +299,9 @@ def explain():
 
     score = float(decision_scores[sample_number])
 
+
     # --------------------------------------------------------
-    # LIME prediction function
+    # LIME PREDICTION FUNCTION
     # --------------------------------------------------------
 
     def predict_for_lime(data):
@@ -286,8 +320,9 @@ def explain():
 
         return np.array(result)
 
+
     # --------------------------------------------------------
-    # Generate explanation
+    # GENERATE EXPLANATION
     # --------------------------------------------------------
 
     explanation = lime_explainer.explain_instance(
@@ -297,15 +332,20 @@ def explain():
         top_labels=2
     )
 
-    # Predicted class
+
+    # --------------------------------------------------------
+    # PREDICTED CLASS
+    # --------------------------------------------------------
+
     predicted_class = 1 if predicted == 1 else 0
 
     lime_list = explanation.as_list(
         label=predicted_class
     )
 
+
     # --------------------------------------------------------
-    # Convert LIME output
+    # CONVERT LIME OUTPUT
     # --------------------------------------------------------
 
     lime_features = []
@@ -319,12 +359,16 @@ def explain():
 
         lime_features.append({
             "feature": feature,
-            "contribution": round(float(contribution), 6),
+            "contribution": round(
+                float(contribution),
+                6
+            ),
             "direction": direction
         })
 
+
     # --------------------------------------------------------
-    # Actual feature values
+    # ACTUAL FEATURE VALUES
     # --------------------------------------------------------
 
     feature_values = []
@@ -338,21 +382,15 @@ def explain():
             "value": original_row[feature_name]
         })
 
+
     return render_template(
         "xai.html",
-
         sample_number=sample_number,
-
         actual_label=actual_text,
-
         predicted_label=predicted_text,
-
         status=status,
-
         decision_score=round(score, 6),
-
         lime_features=lime_features,
-
         feature_values=feature_values
     )
 
@@ -393,12 +431,11 @@ if __name__ == "__main__":
     print("Contamination    : 0.03")
     print("=" * 60)
     print()
-    print("Open this in your browser:")
-    print("http://127.0.0.1:5000")
-    print()
 
     port = int(os.environ.get("PORT", 5000))
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    app.run(
+        host="0.0.0.0",
+        port=port,
+        debug=False
+    )
