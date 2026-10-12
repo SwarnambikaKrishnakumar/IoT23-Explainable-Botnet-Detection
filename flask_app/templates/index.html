@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>IoT Botnet Detection</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+
+    margin: 0;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background:
+        #f1f5f9;
+
+    color:
+        #0f172a;
+}
+
+
+/* HEADER */
+
+.header {
+
+    background:
+        #0f172a;
+
+    color:
+        white;
+
+    padding:
+        25px 40px;
+
+}
+
+.header h1 {
+
+    margin:
+        0;
+
+    font-size:
+        28px;
+
+}
+
+.header p {
+
+    margin:
+        8px 0 0;
+
+    color:
+        #cbd5e1;
+
+}
+
+
+/* MAIN */
+
+.container {
+
+    max-width:
+        1250px;
+
+    margin:
+        30px auto;
+
+    padding:
+        0 20px;
+
+}
+
+
+/* CARD */
+
+.card {
+
+    background:
+        white;
+
+    border-radius:
+        14px;
+
+    padding:
+        25px;
+
+    margin-bottom:
+        25px;
+
+    box-shadow:
+        0 4px 18px rgba(15,23,42,0.08);
+
+}
+
+
+/* SAMPLE */
+
+.sample-box {
+
+    display:
+        flex;
+
+    gap:
+        15px;
+
+    align-items:
+        center;
+
+    flex-wrap:
+        wrap;
+
+}
+
+select {
+
+    padding:
+        12px;
+
+    border:
+        1px solid #cbd5e1;
+
+    border-radius:
+        8px;
+
+    min-width:
+        260px;
+
+    font-size:
+        15px;
+
+}
+
+button {
+
+    border:
+        none;
+
+    padding:
+        12px 22px;
+
+    border-radius:
+        8px;
+
+    background:
+        #2563eb;
+
+    color:
+        white;
+
+    font-size:
+        15px;
+
+    font-weight:
+        bold;
+
+    cursor:
+        pointer;
+
+}
+
+button:hover {
+
+    background:
+        #1d4ed8;
+
+}
+
+
+/* RESULT GRID */
+
+.result-grid {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap:
+        15px;
+
+}
+
+.result {
+
+    padding:
+        20px;
+
+    border-radius:
+        10px;
+
+    background:
+        #f8fafc;
+
+    border:
+        1px solid #e2e8f0;
+
+}
+
+.result-title {
+
+    font-size:
+        13px;
+
+    color:
+        #64748b;
+
+    margin-bottom:
+        8px;
+
+}
+
+.result-value {
+
+    font-size:
+        20px;
+
+    font-weight:
+        bold;
+
+}
+
+
+/* FEATURE TABLE */
+
+.table-container {
+
+    overflow-x:
+        auto;
+
+}
+
+table {
+
+    width:
+        100%;
+
+    border-collapse:
+        collapse;
+
+}
+
+th {
+
+    background:
+        #0f172a;
+
+    color:
+        white;
+
+    text-align:
+        left;
+
+    padding:
+        12px;
+
+}
+
+td {
+
+    padding:
+        11px 12px;
+
+    border-bottom:
+        1px solid #e2e8f0;
+
+}
+
+tr:nth-child(even) {
+
+    background:
+        #f8fafc;
+
+}
+
+.feature-name {
+
+    font-weight:
+        600;
+
+    color:
+        #334155;
+
+}
+
+
+/* EXPLAIN */
+
+.explain-box {
+
+    text-align:
+        center;
+
+    padding:
+        25px;
+
+    background:
+        #eff6ff;
+
+    border:
+        1px solid #bfdbfe;
+
+    border-radius:
+        12px;
+
+}
+
+.explain-button {
+
+    background:
+        #7c3aed;
+
+}
+
+.explain-button:hover {
+
+    background:
+        #6d28d9;
+
+}
+
+
+/* RESPONSIVE */
+
+@media(max-width: 900px) {
+
+    .result-grid {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+
+    }
+
+}
+
+@media(max-width: 600px) {
+
+    .result-grid {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+    .header {
+
+        padding:
+            20px;
+
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- HEADER -->
+
+<div class="header">
+
+    <h1>
+        Explainable IoT Botnet Detection System
+    </h1>
+
+    <p>
+        Early-stage network-based anomaly detection using Local Outlier Factor and LIME
+    </p>
+
+</div>
+
+
+<div class="container">
+
+
+<!-- SAMPLE SELECTION -->
+
+<div class="card">
+
+    <h2>
+        Select Network Traffic Sample
+    </h2>
+
+    <p>
+        Select a test sample from the IoT-23 dataset.
+        The actual feature values will be displayed below.
+    </p>
+
+
+    <form
+        action="/sample"
+        method="POST"
+        class="sample-box"
+    >
+
+        <select
+            name="sample_number"
+            required
+        >
+
+            {% for sample in sample_options %}
+
+            <option
+                value="{{ sample.index }}"
+                {% if sample.index == selected_sample %}
+                selected
+                {% endif %}
+            >
+
+                Sample {{ sample.index }}
+
+                —
+                Actual: {{ sample.actual }}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+
+        <button type="submit">
+
+            Load Sample
+
+        </button>
+
+    </form>
+
+</div>
+
+
+<!-- RESULT -->
+
+<div class="card">
+
+    <h2>
+        Detection Result
+    </h2>
+
+
+    <div class="result-grid">
+
+
+        <div class="result">
+
+            <div class="result-title">
+                Selected Sample
+            </div>
+
+            <div class="result-value">
+
+                {{ selected_sample }}
+
+            </div>
+
+        </div>
+
+
+        <div class="result">
+
+            <div class="result-title">
+                Actual Label
+            </div>
+
+            <div class="result-value">
+
+                {{ actual_label }}
+
+            </div>
+
+        </div>
+
+
+        <div class="result">
+
+            <div class="result-title">
+                LOF Prediction
+            </div>
+
+            <div class="result-value">
+
+                {{ predicted_label }}
+
+            </div>
+
+        </div>
+
+
+        <div class="result">
+
+            <div class="result-title">
+                Decision Score
+            </div>
+
+            <div class="result-value">
+
+                {{ decision_score }}
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <br>
+
+
+    <strong>
+        Prediction Status:
+    </strong>
+
+    {{ status }}
+
+</div>
+
+
+<!-- FEATURES -->
+
+<div class="card">
+
+    <h2>
+        Selected Sample Features
+    </h2>
+
+    <p>
+        These are the actual feature values loaded from
+        <strong>X_test.csv</strong>.
+    </p>
+
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        #
+                    </th>
+
+                    <th>
+                        Feature Name
+                    </th>
+
+                    <th>
+                        Value
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for feature in features %}
+
+                <tr>
+
+                    <td>
+                        {{ loop.index }}
+                    </td>
+
+                    <td class="feature-name">
+                        {{ feature.name }}
+                    </td>
+
+                    <td>
+                        {{ feature.value }}
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- XAI -->
+
+<div class="card explain-box">
+
+    <h2>
+        Explain This Prediction
+    </h2>
+
+    <p>
+        Use LIME to understand which network traffic features
+        contributed to the LOF classification.
+    </p>
+
+
+    <form
+        action="/explain"
+        method="POST"
+    >
+
+        <input
+            type="hidden"
+            name="sample_number"
+            value="{{ selected_sample }}"
+        >
+
+
+        <button
+            type="submit"
+            class="explain-button"
+        >
+
+            🔍 Explain This Prediction
+
+        </button>
+
+    </form>
+
+</div>
+
+
+</div>
+
+
+</body>
+
+</html>

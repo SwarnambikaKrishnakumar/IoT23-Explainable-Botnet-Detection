@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>LIME XAI Explanation</title>
+
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+
+body {
+
+    margin: 0;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background:
+        #f1f5f9;
+
+    color:
+        #0f172a;
+
+}
+
+
+/* HEADER */
+
+.header {
+
+    background:
+        #0f172a;
+
+    color:
+        white;
+
+    padding:
+        25px 40px;
+
+}
+
+
+.header h1 {
+
+    margin:
+        0;
+
+}
+
+
+.header p {
+
+    color:
+        #cbd5e1;
+
+}
+
+
+/* CONTAINER */
+
+.container {
+
+    max-width:
+        1250px;
+
+    margin:
+        30px auto;
+
+    padding:
+        0 20px;
+
+}
+
+
+/* CARD */
+
+.card {
+
+    background:
+        white;
+
+    border-radius:
+        14px;
+
+    padding:
+        25px;
+
+    margin-bottom:
+        25px;
+
+    box-shadow:
+        0 4px 18px rgba(15,23,42,0.08);
+
+}
+
+
+/* SUMMARY */
+
+.summary {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap:
+        15px;
+
+}
+
+
+.summary-card {
+
+    background:
+        #f8fafc;
+
+    border:
+        1px solid #e2e8f0;
+
+    border-radius:
+        10px;
+
+    padding:
+        20px;
+
+}
+
+
+.summary-title {
+
+    color:
+        #64748b;
+
+    font-size:
+        13px;
+
+}
+
+
+.summary-value {
+
+    margin-top:
+        8px;
+
+    font-size:
+        20px;
+
+    font-weight:
+        bold;
+
+}
+
+
+/* LIME TABLE */
+
+table {
+
+    width:
+        100%;
+
+    border-collapse:
+        collapse;
+
+}
+
+
+th {
+
+    background:
+        #0f172a;
+
+    color:
+        white;
+
+    text-align:
+        left;
+
+    padding:
+        13px;
+
+}
+
+
+td {
+
+    padding:
+        13px;
+
+    border-bottom:
+        1px solid #e2e8f0;
+
+}
+
+
+tr:nth-child(even) {
+
+    background:
+        #f8fafc;
+
+}
+
+
+/* CONTRIBUTION */
+
+.positive {
+
+    color:
+        #15803d;
+
+    font-weight:
+        bold;
+
+}
+
+
+.negative {
+
+    color:
+        #dc2626;
+
+    font-weight:
+        bold;
+
+}
+
+
+/* BACK */
+
+.back {
+
+    display:
+        inline-block;
+
+    margin-bottom:
+        20px;
+
+    text-decoration:
+        none;
+
+    color:
+        #2563eb;
+
+    font-weight:
+        bold;
+
+}
+
+
+/* RESPONSIVE */
+
+@media(max-width: 900px) {
+
+    .summary {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+
+    }
+
+}
+
+
+@media(max-width: 600px) {
+
+    .summary {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+    .header {
+
+        padding:
+            20px;
+
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="header">
+
+    <h1>
+        Explainable IoT Botnet Detection
+    </h1>
+
+    <p>
+        Local explanation using LIME
+    </p>
+
+</div>
+
+
+<div class="container">
+
+
+<a
+    href="/?sample={{ sample_number }}"
+    class="back"
+>
+    ← Back to Detection Dashboard
+</a>
+
+
+<!-- SUMMARY -->
+
+<div class="card">
+
+    <h2>
+        Prediction Summary
+    </h2>
+
+
+    <div class="summary">
+
+
+        <div class="summary-card">
+
+            <div class="summary-title">
+                Sample
+            </div>
+
+            <div class="summary-value">
+                {{ sample_number }}
+            </div>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <div class="summary-title">
+                Actual Label
+            </div>
+
+            <div class="summary-value">
+                {{ actual_label }}
+            </div>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <div class="summary-title">
+                LOF Prediction
+            </div>
+
+            <div class="summary-value">
+                {{ predicted_label }}
+            </div>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <div class="summary-title">
+                Decision Score
+            </div>
+
+            <div class="summary-value">
+                {{ decision_score }}
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <br>
+
+
+    <strong>
+        Prediction Status:
+    </strong>
+
+    {{ status }}
+
+</div>
+
+
+<!-- EXPLANATION -->
+
+<div class="card">
+
+    <h2>
+        Why Did LOF Make This Prediction?
+    </h2>
+
+    <p>
+
+        LIME analyzes the selected network traffic sample
+        and identifies the features that locally influenced
+        the classification.
+
+    </p>
+
+    <p>
+
+        Positive contribution values support the displayed
+        prediction, while negative contribution values oppose it.
+
+    </p>
+
+</div>
+
+
+<!-- LIME -->
+
+<div class="card">
+
+    <h2>
+        LIME Feature Contributions
+    </h2>
+
+    <div style="overflow-x:auto;">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Feature / Condition
+                    </th>
+
+                    <th>
+                        Contribution
+                    </th>
+
+                    <th>
+                        Interpretation
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for item in lime_features %}
+
+                <tr>
+
+                    <td>
+                        {{ item.feature }}
+                    </td>
+
+
+                    <td>
+
+                        {% if item.contribution >= 0 %}
+
+                        <span class="positive">
+
+                            +{{ item.contribution }}
+
+                        </span>
+
+                        {% else %}
+
+                        <span class="negative">
+
+                            {{ item.contribution }}
+
+                        </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <td>
+
+                        {{ item.direction }}
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- ALL FEATURES -->
+
+<div class="card">
+
+    <h2>
+        Selected Sample Feature Values
+    </h2>
+
+    <p>
+        Exact values used for the selected test sample.
+    </p>
+
+
+    <div style="overflow-x:auto;">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        #
+                    </th>
+
+                    <th>
+                        Feature
+                    </th>
+
+                    <th>
+                        Value
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for feature in feature_values %}
+
+                <tr>
+
+                    <td>
+                        {{ loop.index }}
+                    </td>
+
+                    <td>
+                        {{ feature.name }}
+                    </td>
+
+                    <td>
+                        {{ feature.value }}
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- METHOD -->
+
+<div class="card">
+
+    <h2>
+        XAI Method Used
+    </h2>
+
+    <p>
+
+        <strong>LIME — Local Interpretable Model-Agnostic Explanations</strong>
+
+    </p>
+
+    <p>
+
+        LIME explains an individual prediction by creating
+        small variations around the selected sample and
+        identifying which features have the strongest local
+        influence on the model's decision.
+
+    </p>
+
+</div>
+
+
+</div>
+
+
+</body>
+
+</html>
